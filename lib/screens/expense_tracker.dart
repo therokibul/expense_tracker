@@ -23,9 +23,9 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
       body: Column(
         children: [
           Expanded(
-            child: ValueListenableBuilder(
+            child: ValueListenableBuilder<Box<Expense>>(
               valueListenable: Hive.box<Expense>('expenses').listenable(),
-              builder: (context, Box<Expense> box, _) {
+              builder: (context, box, _) {
                 if (box.values.isEmpty) {
                   return const Center(
                     child: Text('No expenses added yet!'),
@@ -36,13 +36,40 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                   itemCount: box.values.length,
                   itemBuilder: (context, index) {
                     Expense expense = box.getAt(index)!;
-                    return Card(
-                      child: ListTile(
-                        title: Text(expense.name),
-                        subtitle: Text('৳${expense.amount.toStringAsFixed(2)}'),
-                        trailing: Text(
-                          '${expense.date.day}/${expense.date.month}/${expense.date.year}',
-                        ),
+                    return ListTile(
+                      title: Text(expense.name),
+                      subtitle: Text('৳${expense.amount.toStringAsFixed(2)}'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '${expense.date.day}/${expense.date.month}/${expense.date.year}',
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) =>
+                                      AlertDialog(
+                                        title: const Text('Are you sure?'),
+                                        actions: [
+                                          TextButton(
+                                              onPressed: () {
+                                                Navigator.pop(context);
+                                              },
+                                              child: const Text('Cencel')),
+                                          TextButton(
+                                              onPressed: () async {
+                                                await box.deleteAt(index);
+                                                Navigator.pop(context);
+                                              },
+                                              child: const Text('Delete')),
+                                        ],
+                                      ));
+                            },
+                          ),
+                        ],
                       ),
                     );
                   },
